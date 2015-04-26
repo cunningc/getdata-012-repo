@@ -11,6 +11,8 @@
 ## ********************************************************************
 
 library(dplyr) ## using dplyr functions
+library(Hmisc)
+library(reshape2)
 
 ## ********************** Download and Extract ***************************
 path2url<-"https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
@@ -26,11 +28,11 @@ if(!file.exists(zipfile)){
 ziplist<-unzip(zipfile,list=TRUE) 
 ## create file index for processing
 fileIndex<-as.vector((ziplist[,1])) 
-## write.csv(fileIndex, "fileIndex.csv") - used for testing
+## --optional-- write.csv(fileIndex, "fileIndex.csv") - used for testing
 
 ## -- NOTE see CodeBook.md for fileIndex details
 
-## ****** Test ID Labels and Column Labels ***************************
+## ****** Create Test ID Labels and Column Labels *******************
 ## create the test label key index (from activity_labels.txt)
 test_key<-read.table(fileIndex[1]) ## read in the activity_labels file
 colnames(test_key)<-c("test_id","activity") ## set col names for test_key
@@ -54,7 +56,7 @@ features<-gsub(",","-", features) ## replace extra commas
 ## example grep command to find all entries with either "std" or "mean...
 ## ---- grep("std|mean", features, value=TRUE)
 
-## *********************** Test Data Processing ****************
+## ****************** Capture Test Measurement Data  ****************
 ## NOTES:
 ## 'test/subject_test.txt: subject identifier fileIndex[16]  (2947 rows)
 ## 'test/X_test.txt': Test set raw data.      fileIndex[17]  (1,653,267 rows)
@@ -91,9 +93,7 @@ activity = select(activity, activity) ## results in single column for activity n
 Test_data<-cbind(subjects, activity, Test_data) ## combine all columns in 3 tables
 ## Test_data[1:5,1:4] ## can be used to check the merge
 
-## clear temporary data
-
-## *********************** Train Data Processing ****************
+## *********************** Capture Train Measurement Data ****************
 ## NOTES:
 ## 'train/subject_train.txt: subject identifier fileIndex[30]  (... rows)
 ## 'train/X_train.txt': Train raw data set.     fileIndex[31]   (... rows)
@@ -129,7 +129,7 @@ activity = select(activity, activity) ## results in single column for activity
 Train_data<-cbind(subjects, activity, Train_data) ## combine all columns in 3 tables
 ## Test_data[1:5,1:4] ## to check the merge
 
-## *********************** Tidy Data Set Processing ****************
+## *********************** Combine Train and Test data ****************
 ## combine test and train with rbind()
 results_data<-rbind(Train_data, Test_data)
 ## ---- remove un-needed data frames from memory
@@ -137,26 +137,29 @@ rm(Test_data)
 rm(Train_data)
 rm(subjects)
 rm(activity)
-## ----- write full raw data 'tidy' data file 'tidy_measurements_data.csv'
-write.csv(results_data, file = "tidy_measurements_data.csv")
+## ---optional-- write full raw data 'tidy' data file 'tidy_measurements_data.csv'
+## write.csv(results_data, file = "tidy_measurements_data.csv")
 
-## *********************** Mean and STD Data Processing ****************
+## *********************** Reduce to Mean and STD Data ****************
 ## ------- subset results_data to only mean and standard deviation data
 results_data<-results_data[,grep("std|mean", features)]
 ## x<-names(results_data[grep("std|mean", features)])
 ## mean-std_data<-(select(results_data, grep("std|mean", features)))
 ## results_data[1:5,1:85] ## to check the resulting data set
 
-## ----- write data file 'tidy_mean-std_data.csv'
-write.csv(results_data, file = "tidy_mean-std_data.csv", row.names = FALSE)
+## ---optional -- write data file 'tidy_mean-std_data.csv'
+## write.csv(results_data, file = "tidy_mean-std_data.csv", row.names = FALSE)
 
-## *********************** Mean and STD Data Processing ****************
+## ********************* Create Mean and STD Data Averages ****************
 ## --- average the variables for each activity and each subject
-library(plyr)
-library(Hmisc)
-library(reshape2)
+## library(plyr); library(Hmisc); library(reshape2)
 results_melt <- melt(results_data,id=c("subject_id","activity"),
                      measure.vars=names(results_data[3:86]))
 x<-ddply(results_melt,.(subject_id,activity,variable),summarize,
          average=mean(value))
 write.csv(x, file = "tidy_data.csv", row.names = FALSE)
+
+## --optional-- clear memory
+rm(results_data)
+rm(results_melt)
+rm(x)

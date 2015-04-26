@@ -115,7 +115,16 @@ Project assignment is to create a tidy data set with the average of each variabl
 ### INSTRUCTION LIST
 Reference r-script "run_analysis.R"  
 Input is raw data from source URL  
-Output is Tidy data for later analysis  
+Output is Tidy data for later analysis 
+Uses library(plyr); library(Hmisc); library(reshape2)
+1 - Download from URL and Extract
+2 - Create Test ID Labels and Column Labels
+3 - Capture Test Measurement Data
+4 - Capture Train Measurement Data
+5 - Combine Train and Test data
+6 - Reduce to Mean and STD Data
+7 - Create Mean and STD Data Averages, Write tidy_data.csv 
+
 *italics Note if all processing steps are not documented in the r-script, detailed instructions are here:*  
 
 
