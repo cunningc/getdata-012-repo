@@ -152,6 +152,11 @@ write.csv(results_data, file = "tidy_mean-std_data.csv", row.names = FALSE)
 
 ## *********************** Mean and STD Data Processing ****************
 ## --- average the variables for each activity and each subject
-
-
-
+library(plyr)
+library(Hmisc)
+library(reshape2)
+results_melt <- melt(results_data,id=c("subject_id","activity"),
+                     measure.vars=names(results_data[3:86]))
+x<-ddply(results_melt,.(subject_id,activity,variable),summarize,
+         average=mean(value))
+write.csv(x, file = "tidy_data.csv", row.names = FALSE)
